@@ -46,14 +46,8 @@ impl HttpParserSettings {
     }
 
     c::Struct_http_parser_settings {
-      on_message_begin: match self.on_message_begin {
-                          Some(f) => Some(on_message_begin_wrap),
-                          None => None
-                        },
-      on_url: match self.on_message_begin {
-                Some(f) => Some(on_url_wrap),
-                None => None
-              },
+      on_message_begin: self.on_message_begin.map(|_| on_message_begin_wrap),
+      on_url: self.on_message_begin.map(|_| on_url_wrap),
       on_status: None,
       on_header_field: None,
       on_header_value: None,
