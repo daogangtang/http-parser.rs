@@ -10,9 +10,12 @@ use std::str;
 #[allow(dead_code, non_camel_case_types, non_uppercase_statics)]
 mod c;
 
-pub static HTTP_REQUEST: u32 = c::HTTP_REQUEST;
-pub static HTTP_RESPONSE: u32 = c::HTTP_RESPONSE;
-pub static HTTP_BOTH: u32 = c::HTTP_BOTH;
+#[repr(u32)]
+pub enum ParserType {
+  Request = c::HTTP_REQUEST,
+  Response = c::HTTP_RESPONSE,
+  Both = c::HTTP_BOTH
+}
 
 pub struct HttpParserSettings<T>(c::Struct_http_parser_settings);
 
@@ -118,10 +121,10 @@ impl<T: HttpHandler> HttpParserSettings<T> {
 }
 
 impl HttpParser {
-  pub fn new(type_: u32) -> HttpParser {
+  pub fn new(type_: ParserType) -> HttpParser {
     unsafe {
       let mut parser: HttpParser = uninitialized();
-      c::http_parser_init(&mut parser.parser, type_);
+      c::http_parser_init(&mut parser.parser, type_ as c::Enum_http_parser_type);
       parser
     }
   }
