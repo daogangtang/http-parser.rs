@@ -44,8 +44,7 @@ impl HttpParserSettings {
     extern "C" fn on_url_wrap(parser: *mut c::Struct_http_parser,
                               data: *const libc::c_char, data_len: c::size_t) -> i32 {
       unsafe {
-        buf_as_slice(data as *const u8, data_len as uint, |buf| {
-          let url = str::raw::from_utf8(buf);
+        buf_as_str(data as *const u8, data_len as uint, |url| {
           println!("on_url: {}", url);
         })
       }
@@ -84,4 +83,10 @@ impl HttpParser {
       c::http_should_keep_alive(&self.parser) != 0
     }
   }
+}
+
+unsafe fn buf_as_str<T>(ptr: *const u8, len: uint, f: |&str| -> T) -> T {
+  buf_as_slice(ptr, len, |buf| {
+    f(str::raw::from_utf8(buf))
+  })
 }
