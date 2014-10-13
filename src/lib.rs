@@ -73,7 +73,8 @@ impl HttpParser {
   }
 
   pub fn should_keep_alive(&self) -> bool {
-    if unsafe { c::http_should_keep_alive(&self.parser) } == 0 { return false }
-    true
+    unsafe {
+      c::http_should_keep_alive(&self.parser) != 0
+    }
   }
 }
