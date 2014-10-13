@@ -6,8 +6,7 @@ fn make_an_http_parser() -> HttpParser {
   HttpParser::new(HTTP_REQUEST)
 }
 
-#[test]
-fn curl_get() {
+fn main() {
   fn http_cb(parser_: &HttpParser) -> Result<(), ()> {
     println!("http_cb");
     Ok(())
