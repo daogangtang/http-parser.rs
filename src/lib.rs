@@ -3,6 +3,8 @@
 extern crate native;
 extern crate libc;
 use std::mem::uninitialized;
+use std::slice::raw::buf_as_slice;
+use std::str;
 
 #[allow(dead_code, uppercase_variables, non_camel_case_types, non_uppercase_statics)]
 mod c;
@@ -40,8 +42,13 @@ impl HttpParserSettings {
     }
 
     extern "C" fn on_url_wrap(parser: *mut c::Struct_http_parser,
-                              data: *const libc::c_char, size: c::size_t) -> i32 {
-      println!("on_url");
+                              data: *const libc::c_char, data_len: c::size_t) -> i32 {
+      unsafe {
+        buf_as_slice(data as *const u8, data_len as uint, |buf| {
+          let url = str::raw::from_utf8(buf);
+          println!("on_url: {}", url);
+        })
+      }
       0
     }
 
