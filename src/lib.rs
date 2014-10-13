@@ -4,7 +4,7 @@ extern crate native;
 extern crate libc;
 use std::mem::uninitialized;
 
-#[allow(dead_code, uppercase_variables, non_camel_case_types)]
+#[allow(dead_code, uppercase_variables, non_camel_case_types, non_uppercase_statics)]
 mod c;
 
 pub static HTTP_REQUEST: u32 = c::HTTP_REQUEST;
