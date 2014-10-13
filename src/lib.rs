@@ -36,13 +36,13 @@ impl HttpParserSettings {
     // into macros once more.
     extern "C" fn on_message_begin_wrap(parser: *mut c::Struct_http_parser) -> i32 {
       println!("on_message_begin");
-      0 as i32
+      0
     }
 
     extern "C" fn on_url_wrap(parser: *mut c::Struct_http_parser,
                               data: *const libc::c_char, size: c::size_t) -> i32 {
       println!("on_url");
-      0 as i32
+      0
     }
 
     c::Struct_http_parser_settings {
