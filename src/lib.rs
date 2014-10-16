@@ -41,10 +41,7 @@ pub trait HttpHandler {
   fn on_message_complete(&mut self);
 }
 
-pub struct HttpParser {
-  parser: bindings::http_parser,
-  handler: *mut ()
-}
+pub struct HttpParser(bindings::http_parser);
 
 impl<T: HttpHandler> HttpParserSettings<T> {
   pub fn new() -> HttpParserSettings<T> {
@@ -115,7 +112,7 @@ impl<T: HttpHandler> HttpParserSettings<T> {
     #[inline(always)]
     unsafe fn get_handler<'a, T>(parser: *mut bindings::http_parser) -> &'a mut T {
       let parser = &mut *(parser as *mut HttpParser);
-      &mut *(parser.handler as *mut T)
+      &mut *(parser.0.data as *mut T)
     }
 
     HttpParserSettings(bindings::http_parser_settings {
@@ -135,22 +132,22 @@ impl HttpParser {
   pub fn new(type_: ParserType) -> HttpParser {
     unsafe {
       let mut parser: HttpParser = uninitialized();
-      bindings::http_parser_init(&mut parser.parser, type_.to_c());
+      bindings::http_parser_init(&mut parser.0, type_.to_c());
       parser
     }
   }
 
   pub fn execute<T>(&mut self, handler: &mut T, settings: &HttpParserSettings<T>, data: &[u8]) {
     unsafe {
-      self.handler = (handler as *mut T) as *mut ();
-      bindings::http_parser_execute(&mut self.parser, &settings.0,
+      self.0.data = (handler as *mut T) as *mut ();
+      bindings::http_parser_execute(&mut self.0, &settings.0,
                                     data.as_ptr() as *const c_char, data.len() as size_t);
     }
   }
 
   pub fn should_keep_alive(&self) -> bool {
     unsafe {
-      bindings::http_should_keep_alive(&self.parser) != 0
+      bindings::http_should_keep_alive(&self.0) != 0
     }
   }
 }
