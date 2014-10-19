@@ -14,7 +14,6 @@ pub use bindings::HTTP_REQUEST as Request;
 pub use bindings::HTTP_RESPONSE as Response;
 pub use bindings::HTTP_BOTH as Both;
 
-#[allow(non_camel_case_types, dead_code)]
 mod bindings;
 mod handler;
 

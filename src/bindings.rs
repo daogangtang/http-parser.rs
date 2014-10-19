@@ -1,5 +1,4 @@
-#![allow(non_camel_case_types, non_snake_case)]
-extern crate libc;
+#![allow(non_camel_case_types, dead_code, non_snake_case)]
 use libc::{size_t, c_ulong, c_ushort, c_int, c_char};
 
 pub type http_cb = Option<extern "C" fn(parser: *mut http_parser) -> c_int>;
