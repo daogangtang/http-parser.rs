@@ -43,6 +43,14 @@ impl RequestParser {
       bindings::http_should_keep_alive(&self.0) != 0
     }
   }
+
+  pub fn is_upgrade(&self) -> bool {
+    // XXX: this is hacky and might fail on different ABIs.
+    // the better fix is to have a C shim to handle this,
+    // but that puts an unnecessary call in the hot path
+    // and more importantly, complicates the build process.
+    (self.0.http_errno__upgrade & (1 << 7)) == 0
+  }
 }
 
 impl ResponseParser {
