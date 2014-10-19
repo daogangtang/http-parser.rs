@@ -50,7 +50,7 @@ pub enum http_errno {
    HPE_INVALID_INTERNAL_STATE,
    HPE_STRICT,
    HPE_PAUSED,
-   HPE_UNKNOWN,
+   HPE_UNKNOWN
 }
 
 #[repr(C)]
