@@ -1,4 +1,4 @@
-#![feature(tuple_indexing)]
+#![feature(tuple_indexing, macro_rules)]
 
 extern crate native;
 extern crate libc;

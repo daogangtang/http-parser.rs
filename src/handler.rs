@@ -55,77 +55,49 @@ unsafe fn get_handler<'a, T>(parser: *mut bindings::http_parser) -> &'a mut T {
   &mut *((*parser).data as *mut T)
 }
 
-extern "C" fn on_message_begin<T: Handler>(parser: *mut bindings::http_parser) -> c_int {
-  unsafe {
-    get_handler::<T>(parser).on_message_begin();
-    0
-  }
-}
+macro_rules! cb (
+  ($t:ident :: $f:ident) => (
+    extern "C" fn $f<T: $t>(parser: *mut bindings::http_parser) -> c_int {
+      unsafe {
+        get_handler::<T>(parser).$f();
+        0
+      }
+    }
+  );
 
-extern "C" fn on_url<T: RequestHandler>(parser: *mut bindings::http_parser,
-                                        buf: *const c_char, len: size_t) -> c_int {
-  unsafe {
-    buf_as_str(buf as *const u8, len as uint, |s| {
-      get_handler::<T>(parser).on_url(s);
-    })
-  }
-  0
-}
+  ($t:ident :: $f:ident [u8]) => (
+    extern "C" fn $f<T: $t>(parser: *mut bindings::http_parser,
+                            buf: *const c_char, len: size_t) -> c_int {
+      unsafe {
+        buf_as_slice(buf as *const u8, len as uint, |s| {
+          get_handler::<T>(parser).$f(s);
+        })
+      }
+      0
+    }
+  );
 
-extern "C" fn on_status<T: ResponseHandler>(parser: *mut bindings::http_parser,
-                                            buf: *const c_char, len: size_t) -> c_int {
-  unsafe {
-    buf_as_str(buf as *const u8, len as uint, |s| {
-      get_handler::<T>(parser).on_status(s);
-    })
-  }
-  0
-}
+  ($t:ident :: $f:ident str) => (
+    extern "C" fn $f<T: $t>(parser: *mut bindings::http_parser,
+                            buf: *const c_char, len: size_t) -> c_int {
+      unsafe {
+        buf_as_str(buf as *const u8, len as uint, |s| {
+          get_handler::<T>(parser).$f(s);
+        })
+      }
+      0
+    }
+  );
+)
 
-
-extern "C" fn on_header_field<T: Handler>(parser: *mut bindings::http_parser,
-                                          buf: *const c_char, len: size_t) -> c_int {
-  unsafe {
-    buf_as_str(buf as *const u8, len as uint, |s| {
-      get_handler::<T>(parser).on_header_field(s);
-    })
-  }
-  0
-}
-
-extern "C" fn on_header_value<T: Handler>(parser: *mut bindings::http_parser,
-                                          buf: *const c_char, len: size_t) -> c_int {
-  unsafe {
-    buf_as_str(buf as *const u8, len as uint, |s| {
-      get_handler::<T>(parser).on_header_value(s);
-    })
-  }
-  0
-}
-
-extern "C" fn on_headers_complete<T: Handler>(parser: *mut bindings::http_parser) -> c_int {
-  unsafe {
-    get_handler::<T>(parser).on_headers_complete();
-    0
-  }
-}
-
-extern "C" fn on_body<T: Handler>(parser: *mut bindings::http_parser,
-                                  buf: *const c_char, len: size_t) -> c_int {
-  unsafe {
-    buf_as_slice(buf as *const u8, len as uint, |s| {
-      get_handler::<T>(parser).on_body(s);
-    })
-  }
-  0
-}
-
-extern "C" fn on_message_complete<T: Handler>(parser: *mut bindings::http_parser) -> c_int {
-  unsafe {
-    get_handler::<T>(parser).on_message_complete();
-    0
-  }
-}
+cb!(Handler::on_message_begin)
+cb!(RequestHandler::on_url str)
+cb!(ResponseHandler::on_status str)
+cb!(Handler::on_header_field str)
+cb!(Handler::on_header_value str)
+cb!(Handler::on_headers_complete)
+cb!(Handler::on_body [u8])
+cb!(Handler::on_message_complete)
 
 unsafe fn buf_as_str<T>(ptr: *const u8, len: uint, f: |&str| -> T) -> T {
   buf_as_slice(ptr, len, |buf| {
