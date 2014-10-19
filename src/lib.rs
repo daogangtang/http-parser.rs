@@ -45,7 +45,7 @@ pub struct HttpParser(bindings::http_parser);
 
 impl<T: HttpHandler> HttpParserSettings<T> {
   pub fn new() -> HttpParserSettings<T> {
-    // I tried making those macros but had problems passing self down to the 
+    // I tried making those macros but had problems passing self down to the
     // macro and wanted to just get this done. TODO: investigate turning this
     // into macros once more.
     extern "C" fn on_message_begin<T: HttpHandler>(parser: *mut bindings::http_parser) -> i32 {
