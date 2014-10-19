@@ -5,5 +5,5 @@ authors = ["Maciej Małecki <me@mmalecki.com>"]
 
 build = "make"
 
-[[lib]]
+[lib]
 name = "http_parser"
