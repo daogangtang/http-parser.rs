@@ -111,8 +111,7 @@ impl<T: HttpHandler> HttpParserSettings<T> {
 
     #[inline(always)]
     unsafe fn get_handler<'a, T>(parser: *mut bindings::http_parser) -> &'a mut T {
-      let parser = &mut *(parser as *mut HttpParser);
-      &mut *(parser.0.data as *mut T)
+      &mut *((*parser).data as *mut T)
     }
 
     HttpParserSettings(bindings::http_parser_settings {
