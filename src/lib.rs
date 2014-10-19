@@ -12,10 +12,6 @@ pub use handler::{ParserSettings, RequestHandler, ResponseHandler, Handler};
 mod bindings;
 mod handler;
 
-pub trait Parser {
-  fn should_keep_alive(&self) -> bool;
-}
-
 pub struct RequestParser(bindings::http_parser);
 pub struct ResponseParser(bindings::http_parser);
 
@@ -38,10 +34,12 @@ impl RequestParser {
                                     data.len() as size_t);
     }
   }
-}
+  pub fn http_version(&self) -> (u16, u16) {
+    (self.0.http_major as u16,
+     self.0.http_minor as u16)
+  }
 
-impl Parser for RequestParser {
-  fn should_keep_alive(&self) -> bool {
+  pub fn should_keep_alive(&self) -> bool {
     unsafe {
       bindings::http_should_keep_alive(&self.0) != 0
     }
@@ -67,12 +65,8 @@ impl ResponseParser {
                                     data.len() as size_t);
     }
   }
-}
 
-impl Parser for ResponseParser {
-  fn should_keep_alive(&self) -> bool {
-    unsafe {
-      bindings::http_should_keep_alive(&self.0) != 0
-    }
+  pub fn status_code(&self) -> u16 {
+    self.0.status_code
   }
 }
