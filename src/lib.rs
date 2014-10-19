@@ -7,7 +7,7 @@ use std::mem::uninitialized;
 use libc::{size_t, c_char};
 use handler::to_raw_settings;
 
-pub use handler::{HttpParserSettings, HttpHandler};
+pub use handler::{ParserSettings, Handler};
 
 pub use bindings::http_parser_type as ParserType;
 pub use bindings::HTTP_REQUEST as Request;
@@ -28,7 +28,7 @@ impl HttpParser {
     }
   }
 
-  pub fn execute<T>(&mut self, handler: &mut T, settings: &HttpParserSettings<T>, data: &[u8]) {
+  pub fn execute<T>(&mut self, handler: &mut T, settings: &ParserSettings<T>, data: &[u8]) {
     unsafe {
       self.0.data = (handler as *mut T) as *mut ();
       bindings::http_parser_execute(&mut self.0, to_raw_settings(settings),
