@@ -5,11 +5,11 @@ extern crate native;
 extern crate libc;
 use std::mem::uninitialized;
 use libc::{size_t, c_char};
-
-pub use handler::{HttpParserSettings, HttpHandler};
-pub use bindings::http_parser_type as ParserType;
 use handler::to_raw_settings;
 
+pub use handler::{HttpParserSettings, HttpHandler};
+
+pub use bindings::http_parser_type as ParserType;
 pub use bindings::HTTP_REQUEST as Request;
 pub use bindings::HTTP_RESPONSE as Response;
 pub use bindings::HTTP_BOTH as Both;
