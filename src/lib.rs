@@ -28,9 +28,10 @@ impl RequestParser {
                                     data: &[u8]) {
     unsafe {
       self.0.data = (handler as *mut T) as *mut ();
-      bindings::http_parser_execute(&mut self.0, to_raw_settings(settings),
-                                    data.as_ptr() as *const c_char,
-                                    data.len() as size_t);
+      assert_eq!(bindings::http_parser_execute(&mut self.0,
+                                               to_raw_settings(settings),
+                                               data.as_ptr() as *const c_char,
+                                               data.len() as size_t), 0);
     }
   }
   pub fn http_version(&self) -> (u16, u16) {
