@@ -1,4 +1,3 @@
-#![feature(macro_rules)]
 #![feature(tuple_indexing)]
 
 extern crate native;
