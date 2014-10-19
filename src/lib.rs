@@ -7,28 +7,16 @@ use std::mem::uninitialized;
 use libc::{size_t, c_char};
 
 pub use handler::{HttpParserSettings, HttpHandler};
+pub use bindings::http_parser_type as ParserType;
 use handler::to_raw_settings;
+
+pub use bindings::HTTP_REQUEST as Request;
+pub use bindings::HTTP_RESPONSE as Response;
+pub use bindings::HTTP_BOTH as Both;
 
 #[allow(non_camel_case_types, dead_code)]
 mod bindings;
 mod handler;
-
-#[repr(C)]
-pub enum ParserType {
-  Request,
-  Response,
-  Both
-}
-
-impl ParserType {
-  fn to_c(&self) -> bindings::http_parser_type {
-    match *self {
-      Request  => bindings::HTTP_REQUEST,
-      Response => bindings::HTTP_RESPONSE,
-      Both     => bindings::HTTP_BOTH
-    }
-  }
-}
 
 pub struct HttpParser(bindings::http_parser);
 
@@ -36,7 +24,7 @@ impl HttpParser {
   pub fn new(type_: ParserType) -> HttpParser {
     unsafe {
       let mut parser: HttpParser = uninitialized();
-      bindings::http_parser_init(&mut parser.0, type_.to_c());
+      bindings::http_parser_init(&mut parser.0, type_);
       parser
     }
   }
