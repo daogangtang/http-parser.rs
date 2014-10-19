@@ -6,7 +6,7 @@ extern crate libc;
 use std::mem::uninitialized;
 use std::slice::raw::buf_as_slice;
 use std::str;
-use libc::{size_t, c_char};
+use libc::{size_t, c_char, c_int};
 
 #[allow(non_camel_case_types, dead_code)]
 mod bindings;
@@ -48,7 +48,7 @@ impl<T: HttpHandler> HttpParserSettings<T> {
     // I tried making those macros but had problems passing self down to the
     // macro and wanted to just get this done. TODO: investigate turning this
     // into macros once more.
-    extern "C" fn on_message_begin<T: HttpHandler>(parser: *mut bindings::http_parser) -> i32 {
+    extern "C" fn on_message_begin<T: HttpHandler>(parser: *mut bindings::http_parser) -> c_int {
       unsafe {
         get_handler::<T>(parser).on_message_begin();
         0
@@ -56,7 +56,7 @@ impl<T: HttpHandler> HttpParserSettings<T> {
     }
 
     extern "C" fn on_url<T: HttpHandler>(parser: *mut bindings::http_parser,
-                                         buf: *const c_char, len: size_t) -> i32 {
+                                         buf: *const c_char, len: size_t) -> c_int {
       unsafe {
         buf_as_str(buf as *const u8, len as uint, |s| {
           get_handler::<T>(parser).on_url(s);
@@ -66,7 +66,7 @@ impl<T: HttpHandler> HttpParserSettings<T> {
     }
 
     extern "C" fn on_header_field<T: HttpHandler>(parser: *mut bindings::http_parser,
-                                                  buf: *const c_char, len: size_t) -> i32 {
+                                                  buf: *const c_char, len: size_t) -> c_int {
       unsafe {
         buf_as_str(buf as *const u8, len as uint, |s| {
           get_handler::<T>(parser).on_header_field(s);
@@ -76,7 +76,7 @@ impl<T: HttpHandler> HttpParserSettings<T> {
     }
 
     extern "C" fn on_header_value<T: HttpHandler>(parser: *mut bindings::http_parser,
-                                                  buf: *const c_char, len: size_t) -> i32 {
+                                                  buf: *const c_char, len: size_t) -> c_int {
       unsafe {
         buf_as_str(buf as *const u8, len as uint, |s| {
           get_handler::<T>(parser).on_header_value(s);
@@ -85,7 +85,7 @@ impl<T: HttpHandler> HttpParserSettings<T> {
       0
     }
 
-    extern "C" fn on_headers_complete<T: HttpHandler>(parser: *mut bindings::http_parser) -> i32 {
+    extern "C" fn on_headers_complete<T: HttpHandler>(parser: *mut bindings::http_parser) -> c_int {
       unsafe {
         get_handler::<T>(parser).on_headers_complete();
         0
@@ -93,7 +93,7 @@ impl<T: HttpHandler> HttpParserSettings<T> {
     }
 
     extern "C" fn on_body<T: HttpHandler>(parser: *mut bindings::http_parser,
-                                          buf: *const c_char, len: size_t) -> i32 {
+                                          buf: *const c_char, len: size_t) -> c_int {
       unsafe {
         buf_as_slice(buf as *const u8, len as uint, |s| {
           get_handler::<T>(parser).on_body(s);
@@ -102,7 +102,7 @@ impl<T: HttpHandler> HttpParserSettings<T> {
       0
     }
 
-    extern "C" fn on_message_complete<T: HttpHandler>(parser: *mut bindings::http_parser) -> i32 {
+    extern "C" fn on_message_complete<T: HttpHandler>(parser: *mut bindings::http_parser) -> c_int {
       unsafe {
         get_handler::<T>(parser).on_message_complete();
         0
