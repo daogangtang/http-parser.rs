@@ -7,6 +7,18 @@ pub struct ParserSettings<T>(bindings::http_parser_settings);
 
 pub trait ResponseHandler: Handler {
   fn on_status(&mut self, status: &str);
+  fn to_settings() -> ParserSettings<Self> {
+    ParserSettings(bindings::http_parser_settings {
+      on_message_begin: Some(on_message_begin::<Self>),
+      on_url: None,
+      on_status: Some(on_status::<Self>),
+      on_header_field: Some(on_header_field::<Self>),
+      on_header_value: Some(on_header_value::<Self>),
+      on_headers_complete: Some(on_headers_complete::<Self>),
+      on_body: Some(on_body::<Self>),
+      on_message_complete: Some(on_message_complete::<Self>)
+    })
+  }
 }
 
 pub trait RequestHandler: Handler {
@@ -59,6 +71,17 @@ extern "C" fn on_url<T: RequestHandler>(parser: *mut bindings::http_parser,
   }
   0
 }
+
+extern "C" fn on_status<T: ResponseHandler>(parser: *mut bindings::http_parser,
+                                            buf: *const c_char, len: size_t) -> c_int {
+  unsafe {
+    buf_as_str(buf as *const u8, len as uint, |s| {
+      get_handler::<T>(parser).on_status(s);
+    })
+  }
+  0
+}
+
 
 extern "C" fn on_header_field<T: Handler>(parser: *mut bindings::http_parser,
                                           buf: *const c_char, len: size_t) -> c_int {
