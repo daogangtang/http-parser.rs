@@ -1,5 +1,6 @@
 #![allow(non_camel_case_types, dead_code, non_snake_case)]
 use libc::{size_t, c_ulong, c_ushort, c_int, c_char};
+use std::mem::transmute;
 
 pub type http_cb = Option<extern "C" fn(parser: *mut http_parser) -> c_int>;
 pub type http_data_cb = Option<extern "C" fn(parser: *mut http_parser,
@@ -107,6 +108,12 @@ pub struct http_parser {
   /// http_errno: 7, upgrade: 1
   pub http_errno__upgrade: u8,
   pub data: *mut ()
+}
+
+impl http_parser {
+  pub unsafe fn errno(&self) -> http_errno {
+    transmute(self.http_errno__upgrade as u32 & ((1 << 7) - 1))
+  }
 }
 
 #[link(name = "http_parser", kind = "static")]

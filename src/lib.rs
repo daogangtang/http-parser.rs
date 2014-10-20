@@ -2,7 +2,7 @@
 
 extern crate native;
 extern crate libc;
-use std::mem::{transmute, uninitialized};
+use std::mem::uninitialized;
 use libc::{size_t, c_char};
 use handler::to_raw_settings;
 
@@ -25,15 +25,15 @@ impl RequestParser {
 
   pub fn execute<T: RequestHandler>(&mut self, handler: &mut T,
                                     settings: &ParserSettings<T>,
-                                    data: &[u8]) {
+                                    data: &[u8]) -> uint {
     unsafe {
       self.0.data = (handler as *mut T) as *mut ();
-      assert_eq!(transmute::<_, bindings::http_errno>(
-        bindings::http_parser_execute(&mut self.0,
-                                      to_raw_settings(settings),
-                                      data.as_ptr() as *const c_char,
-                                      data.len() as size_t) as u32),
-                                      bindings::HPE_OK);
+      let ret = bindings::http_parser_execute(&mut self.0,
+                                              to_raw_settings(settings),
+                                              data.as_ptr() as *const c_char,
+                                              data.len() as size_t) as uint;
+      assert_eq!(self.0.errno(), bindings::HPE_OK);
+      ret
     }
   }
   pub fn http_version(&self) -> (u16, u16) {
@@ -67,12 +67,15 @@ impl ResponseParser {
 
   pub fn execute<T: ResponseHandler>(&mut self, handler: &mut T,
                                      settings: &ParserSettings<T>,
-                                     data: &[u8]) {
+                                     data: &[u8]) -> uint {
     unsafe {
       self.0.data = (handler as *mut T) as *mut ();
-      bindings::http_parser_execute(&mut self.0, to_raw_settings(settings),
-                                    data.as_ptr() as *const c_char,
-                                    data.len() as size_t);
+      let ret = bindings::http_parser_execute(&mut self.0,
+                                              to_raw_settings(settings),
+                                              data.as_ptr() as *const c_char,
+                                              data.len() as size_t) as uint;
+      assert_eq!(self.0.errno(), bindings::HPE_OK);
+      ret
     }
   }
 
