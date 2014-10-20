@@ -2,7 +2,7 @@
 
 extern crate native;
 extern crate libc;
-use std::mem::uninitialized;
+use std::mem::{transmute, uninitialized};
 use libc::{size_t, c_char};
 use handler::to_raw_settings;
 
@@ -28,10 +28,12 @@ impl RequestParser {
                                     data: &[u8]) {
     unsafe {
       self.0.data = (handler as *mut T) as *mut ();
-      assert_eq!(bindings::http_parser_execute(&mut self.0,
-                                               to_raw_settings(settings),
-                                               data.as_ptr() as *const c_char,
-                                               data.len() as size_t), 0);
+      assert_eq!(transmute::<_, bindings::http_errno>(
+        bindings::http_parser_execute(&mut self.0,
+                                      to_raw_settings(settings),
+                                      data.as_ptr() as *const c_char,
+                                      data.len() as size_t) as u32),
+                                      bindings::HPE_OK);
     }
   }
   pub fn http_version(&self) -> (u16, u16) {

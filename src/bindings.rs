@@ -19,6 +19,7 @@ pub struct http_parser_settings {
 }
 
 #[repr(C)]
+#[deriving(Show, PartialEq)]
 pub enum http_errno {
   HPE_OK,
   HPE_CB_message_begin,
