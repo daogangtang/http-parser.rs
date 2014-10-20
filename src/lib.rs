@@ -1,4 +1,4 @@
-#![feature(tuple_indexing, macro_rules)]
+#![feature(tuple_indexing, macro_rules, globs)]
 
 extern crate native;
 extern crate libc;
@@ -6,7 +6,7 @@ use std::mem::{transmute, uninitialized};
 use libc::{size_t, c_char};
 use handler::to_raw_settings;
 
-pub use handler::{ParserSettings, RequestHandler, ResponseHandler, Handler};
+pub use handler::{ParserSettings, RequestHandler, ResponseHandler};
 
 mod bindings;
 mod handler;
