@@ -1,7 +1,7 @@
 [project]
 name = "http-parser"
 version = "0.0.1"
-authors = ["Maciej Małecki <me@mmalecki.com>"]
+authors = ["Nathan Zadoks <nathan@nathan7.eu>"]
 
 build = "make"
 
