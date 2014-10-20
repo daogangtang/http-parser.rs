@@ -115,9 +115,11 @@ impl http_parser {
   // the better fix is to have a C shim to handle this,
   // but that puts an unnecessary call in the hot path
   // and more importantly, complicates the build process.
+  #[inline(always)]
   pub unsafe fn errno(&self) -> http_errno {
     transmute(self.http_errno__upgrade as u32 & ((1 << 7) - 1))
   }
+  #[inline(always)]
   pub fn is_upgrade(&self) -> bool {
     (self.http_errno__upgrade & (1 << 7)) == 0
   }
