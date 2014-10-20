@@ -111,8 +111,15 @@ pub struct http_parser {
 }
 
 impl http_parser {
+  // XXX: this is hacky and might fail on different ABIs.
+  // the better fix is to have a C shim to handle this,
+  // but that puts an unnecessary call in the hot path
+  // and more importantly, complicates the build process.
   pub unsafe fn errno(&self) -> http_errno {
     transmute(self.http_errno__upgrade as u32 & ((1 << 7) - 1))
+  }
+  pub fn is_upgrade(&self) -> bool {
+    (self.http_errno__upgrade & (1 << 7)) == 0
   }
 }
 
