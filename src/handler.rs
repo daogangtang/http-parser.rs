@@ -9,7 +9,7 @@ macro_rules! cb(
   ($t:ident :: $f:ident ( )) => (
     extern "C" fn $f<T: $t>(parser: *mut bindings::http_parser) -> c_int {
       unsafe {
-        get_handler::<T>(parser).$f();
+        get_handler::<T>(parser).$f(transmute(parser));
         0
       }
     }
@@ -20,7 +20,7 @@ macro_rules! cb(
                             buf: *const c_char, len: size_t) -> c_int {
       unsafe {
         buf_as_slice(buf as *const u8, len as uint, |s| {
-          get_handler::<T>(parser).$f(s);
+          get_handler::<T>(parser).$f(transmute(parser), s);
         })
       }
       0
@@ -32,7 +32,7 @@ macro_rules! cb(
                             buf: *const c_char, len: size_t) -> c_int {
       unsafe {
         buf_as_str(buf as *const u8, len as uint, |s| {
-          get_handler::<T>(parser).$f(s);
+          get_handler::<T>(parser).$f(transmute(parser), s);
         })
       }
       0
@@ -48,15 +48,16 @@ macro_rules! cbs(
 
 mod request {
   use super::util::*;
+  use super::super::RequestParser;
 
   pub trait RequestHandler {
-    fn on_message_begin(&mut self);
-    fn on_url(&mut self, url: &str);
-    fn on_header_field(&mut self, field: &str);
-    fn on_header_value(&mut self, value: &str);
-    fn on_headers_complete(&mut self);
-    fn on_body(&mut self, buf: &[u8]);
-    fn on_message_complete(&mut self);
+    fn on_message_begin(&mut self, parser: &mut RequestParser);
+    fn on_url(&mut self, parser: &mut RequestParser, url: &str);
+    fn on_header_field(&mut self, parser: &mut RequestParser, field: &str);
+    fn on_header_value(&mut self, parser: &mut RequestParser, value: &str);
+    fn on_headers_complete(&mut self, parser: &mut RequestParser);
+    fn on_body(&mut self, parser: &mut RequestParser, buf: &[u8]);
+    fn on_message_complete(&mut self, parser: &mut RequestParser);
 
     fn to_settings() -> ParserSettings<Self> {
       ParserSettings(bindings::http_parser_settings {
@@ -85,15 +86,16 @@ mod request {
 
 mod response {
   use super::util::*;
+  use super::super::ResponseParser;
 
   pub trait ResponseHandler {
-    fn on_message_begin(&mut self);
-    fn on_status(&mut self, status: &str);
-    fn on_header_field(&mut self, field: &str);
-    fn on_header_value(&mut self, value: &str);
-    fn on_headers_complete(&mut self);
-    fn on_body(&mut self, buf: &[u8]);
-    fn on_message_complete(&mut self);
+    fn on_message_begin(&mut self, parser: &mut ResponseParser);
+    fn on_status(&mut self, parser: &mut ResponseParser, status: &str);
+    fn on_header_field(&mut self, parser: &mut ResponseParser, field: &str);
+    fn on_header_value(&mut self, parser: &mut ResponseParser, value: &str);
+    fn on_headers_complete(&mut self, parser: &mut ResponseParser);
+    fn on_body(&mut self, parser: &mut ResponseParser, buf: &[u8]);
+    fn on_message_complete(&mut self, parser: &mut ResponseParser);
 
     fn to_settings() -> ParserSettings<Self> {
       ParserSettings(bindings::http_parser_settings {
@@ -129,6 +131,7 @@ mod util {
   pub use super::super::bindings;
   pub use std::slice::raw::buf_as_slice;
   pub use super::ParserSettings;
+  pub use std::mem::transmute;
   use std::str;
 
   #[inline(always)]
