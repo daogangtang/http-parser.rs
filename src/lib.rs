@@ -11,7 +11,9 @@ pub use handler::{ParserSettings, RequestHandler, ResponseHandler};
 mod bindings;
 mod handler;
 
+#[repr(C)]
 pub struct RequestParser(bindings::http_parser);
+#[repr(C)]
 pub struct ResponseParser(bindings::http_parser);
 
 impl RequestParser {
