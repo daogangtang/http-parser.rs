@@ -4,7 +4,7 @@ extern crate native;
 extern crate libc;
 use std::mem::uninitialized;
 use libc::{size_t, c_char};
-use handler::to_raw_settings;
+use handler::{to_raw_settings, HandlerContext};
 
 pub use handler::{ParserSettings, RequestHandler, ResponseHandler};
 
@@ -25,16 +25,26 @@ impl RequestParser {
     }
   }
 
-  pub fn execute<T: RequestHandler>(&mut self, handler: &mut T,
-                                    settings: &ParserSettings<T>,
-                                    data: &[u8]) -> uint {
+  pub fn execute<T: RequestHandler<R, E>, R, E>(&mut self, handler: &mut T,
+                                                settings: &ParserSettings<T>,
+                                                data: &[u8]) -> Option<Result<R, E>> {
     unsafe {
-      self.0.data = (handler as *mut T) as *mut ();
-      let ret = bindings::http_parser_execute(&mut self.0,
-                                              to_raw_settings(settings),
-                                              data.as_ptr() as *const c_char,
-                                              data.len() as size_t) as uint;
-      assert_eq!(self.0.errno(), bindings::HPE_OK);
+      let mut ret = None;
+      let ctx = HandlerContext {
+        handler: handler,
+        ret: &mut ret
+      };
+      self.0.data = &ctx as *const _ as *mut ();
+      let bytes_read = {
+        bindings::http_parser_execute(&mut self.0,
+                                      to_raw_settings(settings),
+                                      data.as_ptr() as *const c_char,
+                                      data.len() as size_t)
+      };
+      match self.0.errno() {
+        bindings::HPE_PAUSED | bindings::HPE_OK => {},
+        errno => panic!("unexpected error: {}", errno)
+      }
       ret
     }
   }
@@ -63,15 +73,22 @@ impl ResponseParser {
     }
   }
 
-  pub fn execute<T: ResponseHandler>(&mut self, handler: &mut T,
-                                     settings: &ParserSettings<T>,
-                                     data: &[u8]) -> uint {
+  pub fn execute<T: ResponseHandler<R, E>, R, E>(&mut self, handler: &mut T,
+                                                 settings: &ParserSettings<T>,
+                                                 data: &[u8]) -> Option<Result<R, E>> {
     unsafe {
-      self.0.data = (handler as *mut T) as *mut ();
-      let ret = bindings::http_parser_execute(&mut self.0,
-                                              to_raw_settings(settings),
-                                              data.as_ptr() as *const c_char,
-                                              data.len() as size_t) as uint;
+      let mut ret = None;
+      let ctx = HandlerContext {
+        handler: handler,
+        ret: &mut ret
+      };
+      self.0.data = &ctx as *const _ as *mut ();
+      let bytes_read = {
+        bindings::http_parser_execute(&mut self.0,
+        to_raw_settings(settings),
+        data.as_ptr() as *const c_char,
+        data.len() as size_t)
+      };
       assert_eq!(self.0.errno(), bindings::HPE_OK);
       ret
     }
