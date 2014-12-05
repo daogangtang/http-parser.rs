@@ -159,7 +159,7 @@ pub fn to_raw_settings<T>(settings: &ParserSettings<T>) -> &bindings::http_parse
 
 mod util {
   pub use libc::{size_t, c_char, c_int};
-  pub use super::super::bindings;
+  pub use bindings;
   pub use std::{str, slice};
   pub use super::ParserSettings;
   pub use std::mem::transmute;
