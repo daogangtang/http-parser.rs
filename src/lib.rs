@@ -24,10 +24,10 @@ impl RequestParser {
     }
   }
 
-  pub fn execute<T: RequestHandler<R, E>, R, E>(&mut self, handler: &mut T,
-                                                settings: &ParserSettings<T>,
-                                                data: &[u8],
-                                                ret: &mut Option<Result<R, E>>) -> uint {
+  pub fn execute<H, R, E>(&mut self, handler: &mut H,
+                          settings: &ParserSettings<H>,
+                          data: &[u8], ret: &mut Option<Result<R, E>>) -> uint
+                          where H: RequestHandler<R, E> {
     unsafe {
       *ret = None;
       let ctx = HandlerContext {
@@ -73,10 +73,10 @@ impl ResponseParser {
     }
   }
 
-  pub fn execute<T: ResponseHandler<R, E>, R, E>(&mut self, handler: &mut T,
-                                                 settings: &ParserSettings<T>,
-                                                 data: &[u8],
-                                                 ret: &mut Option<Result<R, E>>) -> uint {
+  pub fn execute<H, R, E>(&mut self, handler: &mut H,
+                          settings: &ParserSettings<H>,
+                          data: &[u8], ret: &mut Option<Result<R, E>>) -> uint
+                          where H: ResponseHandler<R, E> {
     unsafe {
       *ret = None;
       let ctx = HandlerContext {
