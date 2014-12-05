@@ -45,12 +45,12 @@ macro_rules! cb(
   ($t:ident :: $f:ident ([u8])) => (
     extern "C" fn $f<T: $t<R, E>, R, E>(parser: *mut bindings::http_parser,
                                         buf: *const c_char, len: size_t) -> c_int {
+      let buf = buf as *const u8;
       unsafe {
-        buf_as_slice(buf as *const u8, len as uint, |s| {
-          let ctx: &HandlerContext<T, R, E> = HandlerContext::get(parser);
-          *ctx.ret = ctx.get_handler().$f(transmute(parser), s);
-          ctx.ret_pause(parser)
-        })
+        let s = slice::from_raw_buf(&buf, len as uint);
+        let ctx: &HandlerContext<T, R, E> = HandlerContext::get(parser);
+        *ctx.ret = ctx.get_handler().$f(transmute(parser), s);
+        ctx.ret_pause(parser)
       }
     }
   );
@@ -58,12 +58,12 @@ macro_rules! cb(
   ($t:ident :: $f:ident (str)) => (
     extern "C" fn $f<T: $t<R, E>, R, E>(parser: *mut bindings::http_parser,
                                         buf: *const c_char, len: size_t) -> c_int {
+      let buf = buf as *const u8;
       unsafe {
-        buf_as_str(buf as *const u8, len as uint, |s| {
-          let ctx: &HandlerContext<T, R, E> = HandlerContext::get(parser);
-          *ctx.ret = ctx.get_handler().$f(transmute(parser), s);
-          ctx.ret_pause(parser)
-        })
+        let s = str::from_utf8_unchecked(slice::from_raw_buf(&buf, len as uint));
+        let ctx: &HandlerContext<T, R, E> = HandlerContext::get(parser);
+        *ctx.ret = ctx.get_handler().$f(transmute(parser), s);
+        ctx.ret_pause(parser)
       }
     }
   );
@@ -160,14 +160,7 @@ pub fn to_raw_settings<T>(settings: &ParserSettings<T>) -> &bindings::http_parse
 mod util {
   pub use libc::{size_t, c_char, c_int};
   pub use super::super::bindings;
-  pub use std::slice::raw::buf_as_slice;
+  pub use std::{str, slice};
   pub use super::ParserSettings;
   pub use std::mem::transmute;
-  use std::str;
-
-  pub unsafe fn buf_as_str<T>(ptr: *const u8, len: uint, f: |&str| -> T) -> T {
-    buf_as_slice(ptr, len, |buf| {
-      f(str::raw::from_utf8(buf))
-    })
-  }
 }
