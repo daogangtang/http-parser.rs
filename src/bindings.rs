@@ -1,4 +1,7 @@
 #![allow(non_camel_case_types, dead_code, non_snake_case)]
+pub use self::http_errno::*;
+pub use self::http_parser_type::*;
+
 use libc::{size_t, c_ulong, c_ushort, c_int, c_char};
 use std::mem::transmute;
 
