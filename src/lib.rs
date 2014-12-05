@@ -1,6 +1,5 @@
 #![feature(tuple_indexing, macro_rules, globs)]
 
-extern crate native;
 extern crate libc;
 use std::mem::uninitialized;
 use libc::{size_t, c_char};
@@ -27,12 +26,12 @@ impl RequestParser {
 
   pub fn execute<T: RequestHandler<R, E>, R, E>(&mut self, handler: &mut T,
                                                 settings: &ParserSettings<T>,
-                                                data: &[u8]) -> Option<Result<R, E>> {
+                                                data: &[u8],
+                                                ret: &mut Option<Result<R, E>>) -> uint {
     unsafe {
-      let mut ret = None;
       let ctx = HandlerContext {
         handler: handler,
-        ret: &mut ret
+        ret: ret
       };
       self.0.data = &ctx as *const _ as *mut ();
       let bytes_read = {
@@ -45,7 +44,7 @@ impl RequestParser {
         bindings::HPE_PAUSED | bindings::HPE_OK => {},
         errno => panic!("unexpected error: {}", errno)
       }
-      ret
+      bytes_read as uint
     }
   }
   pub fn http_version(&self) -> (u16, u16) {
@@ -75,12 +74,12 @@ impl ResponseParser {
 
   pub fn execute<T: ResponseHandler<R, E>, R, E>(&mut self, handler: &mut T,
                                                  settings: &ParserSettings<T>,
-                                                 data: &[u8]) -> Option<Result<R, E>> {
+                                                 data: &[u8],
+                                                 ret: &mut Option<Result<R, E>>) -> uint {
     unsafe {
-      let mut ret = None;
       let ctx = HandlerContext {
         handler: handler,
-        ret: &mut ret
+        ret: ret
       };
       self.0.data = &ctx as *const _ as *mut ();
       let bytes_read = {
@@ -90,7 +89,7 @@ impl ResponseParser {
         data.len() as size_t)
       };
       assert_eq!(self.0.errno(), bindings::HPE_OK);
-      ret
+      bytes_read as uint
     }
   }
 
