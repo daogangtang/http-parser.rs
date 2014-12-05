@@ -29,6 +29,7 @@ impl RequestParser {
                                                 data: &[u8],
                                                 ret: &mut Option<Result<R, E>>) -> uint {
     unsafe {
+      *ret = None;
       let ctx = HandlerContext {
         handler: handler,
         ret: ret
@@ -77,6 +78,7 @@ impl ResponseParser {
                                                  data: &[u8],
                                                  ret: &mut Option<Result<R, E>>) -> uint {
     unsafe {
+      *ret = None;
       let ctx = HandlerContext {
         handler: handler,
         ret: ret
