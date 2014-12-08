@@ -1,4 +1,4 @@
-#![feature(tuple_indexing, macro_rules, globs)]
+#![feature(macro_rules, globs)]
 
 extern crate libc;
 use std::mem::uninitialized;
